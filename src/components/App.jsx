@@ -4,8 +4,7 @@ import ImageGallery from "./ImageGallery/ImageGallery";
 import getImagePixabay from "../services/pixabay";
 import Container from "./Container/Container";
 import Button from "./Button/Button";
-import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
-import { ThreeDots } from  'react-loader-spinner'
+import Loader from "./Loader/Loader";
 
 export class App extends Component {
   state = {
@@ -23,6 +22,15 @@ export class App extends Component {
       this.setState({ isLoading: true });
       try {
         const searchImagesData = await getImagePixabay(search, page);
+
+        if (searchImagesData.totalHits === 0) {
+          this.setState({
+            isLoading: false,
+            error: new Error("No results were found for this query")
+          });
+          return;
+        }
+
         this.setState((prevState) => ({
           images: [...prevState.images, ...searchImagesData.hits],
           isLoading: false,
@@ -30,7 +38,7 @@ export class App extends Component {
         }));
       } catch (error) {
         this.setState({
-          error: new Error(`Something went wrong ${error}`),
+          error: new Error(`Something went wrong. ${error.message}`),
           isLoading: false
         });
       } finally {
@@ -43,7 +51,8 @@ export class App extends Component {
     this.setState({
       search: searchText.trim(),
       page: 1,
-      images: []
+      images: [],
+      error: null
     });
   }
 
@@ -54,14 +63,15 @@ export class App extends Component {
   }
   
   render() {
-    const { images, isLoading, totalImages } = this.state;
+    const { images, isLoading, totalImages, error } = this.state;
     const imagesOnScreen = images.length;
     return (
       <>
         <Container>
           <Searchbar onSearch={this.handleFormSubmit} />
-          {isLoading && <ThreeDots color="#3f51b5" height={80} width={80} />}
+          {error && <h2 className="error">{error.message}</h2>}
           {imagesOnScreen > 0 && <ImageGallery images={images} />}
+          {isLoading && <Loader />}
           {imagesOnScreen > 0 && imagesOnScreen < totalImages && <Button onLoadMore={this.loadMore} />}
         </Container>
       </>

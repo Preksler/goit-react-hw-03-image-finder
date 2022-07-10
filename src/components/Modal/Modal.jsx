@@ -20,7 +20,6 @@ class Modal extends Component {
 
     onEscKeydown = (event) => {
         if (event.key === 'Escape') {
-            console.log('Escape key pressed');
             this.props.onClose();
         }
     }
