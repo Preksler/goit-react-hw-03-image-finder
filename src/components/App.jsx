@@ -12,19 +12,21 @@ export class App extends Component {
     search: "",
     page: 1,
     images: [],
+    totalImages: 0,
     isLoading: false,
     error: null
   };
 
   async componentDidUpdate(_, prevState) {
     const { search, page } = this.state;
-    // this.setState({ isLoading: true });
     if (prevState.search !== search || prevState.page !== page) {
+      this.setState({ isLoading: true });
       try {
         const searchImagesData = await getImagePixabay(search, page);
         this.setState((prevState) => ({
           images: [...prevState.images, ...searchImagesData.hits],
           isLoading: false,
+          totalImages: searchImagesData.totalHits,
         }));
       } catch (error) {
         this.setState({
@@ -52,15 +54,15 @@ export class App extends Component {
   }
   
   render() {
-    const { images, isLoading } = this.state;
-    const imagesTotoal = images.length;
+    const { images, isLoading, totalImages } = this.state;
+    const imagesOnScreen = images.length;
     return (
       <>
         <Container>
           <Searchbar onSearch={this.handleFormSubmit} />
           {isLoading && <ThreeDots color="#3f51b5" height={80} width={80} />}
-          {imagesTotoal > 0 ? <ImageGallery images={images} /> : null}
-          <Button onLoadMore={this.loadMore} />
+          {imagesOnScreen > 0 && <ImageGallery images={images} />}
+          {imagesOnScreen > 0 && imagesOnScreen < totalImages && <Button onLoadMore={this.loadMore} />}
         </Container>
       </>
     );
